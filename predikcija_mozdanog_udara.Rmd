@@ -1,0 +1,208 @@
+---
+title: "Predikcija moždanog udara"
+output: 
+    pdf_document:
+        number_sections: true
+date: "13. prosinca 2025."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(encoding = "UTF-8")
+Sys.setlocale("LC_CTYPE", "Croatian_Croatia.UTF-8")
+```
+
+# Upoznavanje s podatcima
+
+U ovom se odjeljku učitavaju dani podatci te se provodi njihovo čišćenje i priprema za daljnju analizu.
+
+## Učitavanje podataka
+
+U sljedećem koraku učitavamo skup podataka o moždanom udaru iz CSV datoteke te provodimo osnovnu analizu o podudarnosti tipova atributa.
+
+```{r}
+# Učitavanje danog skupa podataka
+podatci <- read.csv("healthcare-dataset-stroke-data.csv")
+```
+
+\vspace{0.4cm}
+
+Nakon uspješnog učitavanja, napravit ćemo kratak sažetak svih atributa učitanih podataka.
+
+```{r}
+str(podatci)
+```
+
+\vspace{0.2cm}
+
+Primijetimo kako svi atributi, izuzev \textbf{bmi} atributa, imaju odgovarajuće tipove podataka definirane u opisu podatkovnog skupa što je važno za daljnje provođenje postupka čišćenja
+
+\vspace{0.2cm}
+
+```{r}
+summary(podatci)
+```
+
+## Čišćenje podataka
+
+Ovaj se odjeljak posvećuje svakome podatkovnom atributu kako bi se utvrdila valjanost podataka.
+
+### Varijabla `id`
+
+```{r}
+sum(duplicated(podatci$id))
+```
+
+\vspace{0.2cm}
+
+Provjera postije li podatci pod istim ID-om. Svi su podatci označeni jedinstvenim identifikatorom te u ovome koraku nema potrebe za bilo kakvom manipulacijom nad njima.
+
+### Varijabla `gender` (spol)
+
+```{r}
+unique(podatci$gender)
+sum(is.na(podatci$gender)) 
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *gender* ne trebaju dalje čistiti.
+
+### Varijabla `age` (dob)
+
+```{r}
+summary(podatci$age)
+sum(is.na(podatci$age))
+boxplot(podatci$age, main="Brkata kutija dobi", range=1.5, ylab="Dob [godine]")
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *age* ne trebaju dalje čistiti.
+
+### Varijabla `hypertension` (visoki krvni tlak)
+
+```{r}
+unique(podatci$hypertension)
+sum(is.na(podatci$hypertension))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *hypertension* ne trebaju dalje čistiti.
+
+### Varijabla `heart_disease` (srčane bolesti)
+
+```{r}
+unique(podatci$heart_disease)
+sum(is.na(podatci$heart_disease))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *heart_disease* ne trebaju dalje čistiti.
+
+### Varijabla `ever_married` (bračni status)
+
+```{r}
+unique(podatci$ever_married)
+sum(is.na(podatci$ever_married))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *ever_married* ne trebaju dalje čistiti.
+
+### Varijabla `work_type` (tip zaposlenja)
+
+```{r}
+unique(podatci$work_type)
+sum(is.na(podatci$work_type))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *work_type* ne trebaju dalje čistiti.
+
+### Varijavla `residence_type` (tip prebivališta)
+
+```{r}
+unique(podatci$Residence_type)
+sum(is.na(podatci$Residence_type))
+```
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *residence_type* ne trebaju dalje čistiti.
+
+### Varijabla `avg_glucose_level` (prosječna razina glukoze)
+
+```{r}
+summary(podatci$avg_glucose_level)
+```
+
+\vspace{0.2cm}
+
+U specifikacij zadatka nisu dane restrikcije na domenu varijable *avg_glucose_level*, stoga numeričke vrijednosti u podatkovnom skupu nije moguće usporeditit ni s čim te će se samo uzeti kao valjane.
+
+### Varijabla `bmi` (indeks tjelesne mase)
+
+Kao što je već otkriveno prilikom učitavanja podataka, ptrebno je promijeniti tip varijable bmi. Kako bi navedeno bilo moguće, nedostajuće vrijednosti, koje su u podatcima obilježene znakovnim nizom "N/A", moramo pretvoriti u NA objekt poznat R-u. Zatim možemo provesti pretvorbu podataka.
+
+```{r}
+# br nepostojećih vrijednosti
+length(podatci$bmi[podatci$bmi == "N/A"])
+
+podatci$bmi[podatci$bmi == "N/A"] <- NA
+
+podatci$bmi <- as.numeric(podatci$bmi)
+
+summary(podatci$bmi)
+
+boxplot(podatci$bmi, main="Brkata kutija bmi-a", range=1.5, ylab="indesk tjelsesne mase")
+
+cat("Br. stršećih vrijednosti:", length(boxplot.stats(podatci$bmi, coef = 1.5)$out))
+```
+
+\vspace{0.2cm}
+
+Nakon nužne zamjene znakovnog niza "N/A" u NA objekt i pretvorbe bmi podataka u numerički tip, može se izvršiti metoda `summary()` iz koje vidimo da se sve postojeće vrijednosti u podatkovnom skupu sada podudaraju s domenom atributa specificiranom u zadatku, točno je identificirana 201 nepoznata vrijednost te se podatci u atributu *bmi* ne trebaju dalje čistiti. Pomoću metode `boxplot()` vizualizirana je brkata kutija podataka varijable *bmi*, utvrđeno je postojanje 110 stršećih vrijednosti koje su sve iznad gornjeg izdanka brkate kutije. Kako bi se smanjio utjecaj stršećih vrijednosti, odbačeni su svi podatci iz danog skupa za koje varijabla *bmi* poprima uglavnom nerealne vrijednosti ($\ge$ 52).
+
+```{r}
+podatci <- podatci[podatci$bmi < 52 | is.na(podatci$bmi),]
+summary(podatci$bmi)
+
+boxplot(podatci$bmi, main="Brkata kutija bmi-a", range=1.5, ylab="indesk tjelsesne mase")
+
+cat("Br. stršećih vrijednosti:", length(boxplot.stats(podatci$bmi, coef = 1.5)$out))
+```
+
+Nakon uklanjanja nerealnih vrijednosti, vidljiv je manji utjecaj stršećih vrijednosti na artimetičku sredinu *bmi* podataka. Kako ne bi došlo do daljnjeg gubitka podataka, s nedostajaćim će se podatcima pristupati tako da im se pridruži vrijednost medijana. Za ovaj je postupak odabran medijan umjesto srednje vrijednosti upravo zbog nedostatka utjecaja gornjih stršećih vrijendosti na njega.
+
+```{r}
+podatci$bmi[is.na(podatci$bmi)] <- median(podatci$bmi, na.rm = TRUE)
+```
+
+### Varijabla `smoking_status`(status pušenja)
+
+```{r}
+unique(podatci$smoking_status)
+sum(is.na(podatci$smoking_status))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, nepoznate vrijednosti postoje jer su u samoj definiciji dopuštenih realizacija varijable `smoking_status` te su označeni kao "Unknown" radije nego objektom NA. Podatci u atributu *smoking_status* se ne trebaju dalje čistiti.
+
+### Varijabla `stroke` (moždani udar)
+
+```{r}
+unique(podatci$stroke)
+sum(is.na(podatci$stroke))
+```
+
+\vspace{0.2cm}
+
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *stroke* ne trebaju dalje čistiti.
+
+# Literatura
+
+1.  Pintar, Damir; Programirajmo u R-u; 2025-11-13; URL: <https://ratnip.github.io/OSP_2025/>; pristupljeno 2025-12-14
