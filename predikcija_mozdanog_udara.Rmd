@@ -62,11 +62,14 @@ Provjera postije li podatci pod istim ID-om. Svi su podatci označeni jedinstven
 ```{r}
 unique(podatci$gender)
 sum(is.na(podatci$gender)) 
+table(podatci$gender)
+cat("Postotak \'Other\' kategorije: ", round(sum(podatci$gender == "Other") * 100 / length(podatci$gender), 2), "%")
+podatci <- podatci[podatci$gender != "Other",]
 ```
 
 \vspace{0.2cm}
 
-Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *gender* ne trebaju dalje čistiti.
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti. S obziorm na to da je zastupljenost podataka za kategoriju "Others" premalena ($\approx 0.02$, tj. frekvencija pojavljivanja je 1), teško ju je modelirati te je izbačen odgovarajući podatak. 
 
 ### Varijabla `age` (dob)
 
@@ -78,7 +81,7 @@ boxplot(podatci$age, main="Brkata kutija dobi", range=1.5, ylab="Dob [godine]")
 
 \vspace{0.2cm}
 
-Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti te se podatci u atributu *age* ne trebaju dalje čistiti.
+Sve se postojeće vrijednosti u podatkovnom skupu podudaraju s domenom atributa specificiranom u zadatku, ne postoje nedostajeće i nepoznate vrijednosti, stršeće vrijednosti nisu detektirane te se podatci u atributu *age* ne trebaju dalje čistiti.
 
 ### Varijabla `hypertension` (visoki krvni tlak)
 
@@ -145,7 +148,7 @@ U specifikacij zadatka nisu dane restrikcije na domenu varijable *avg_glucose_le
 
 ### Varijabla `bmi` (indeks tjelesne mase)
 
-Kao što je već otkriveno prilikom učitavanja podataka, ptrebno je promijeniti tip varijable bmi. Kako bi navedeno bilo moguće, nedostajuće vrijednosti, koje su u podatcima obilježene znakovnim nizom "N/A", moramo pretvoriti u NA objekt poznat R-u. Zatim možemo provesti pretvorbu podataka.
+Kao što je već otkriveno prilikom učitavanja podataka, potrebno je promijeniti tip varijable bmi. Kako bi navedeno bilo moguće, nedostajuće vrijednosti, koje su u podatcima obilježene znakovnim nizom "N/A", moramo pretvoriti u NA objekt poznat R-u. Zatim možemo provesti pretvorbu podataka.
 
 ```{r}
 # br nepostojećih vrijednosti
@@ -157,7 +160,7 @@ podatci$bmi <- as.numeric(podatci$bmi)
 
 summary(podatci$bmi)
 
-boxplot(podatci$bmi, main="Brkata kutija bmi-a", range=1.5, ylab="indesk tjelsesne mase")
+boxplot(podatci$bmi, main="Brkata kutija bmi-a", range=1.5, ylab="indeks tjelsesne mase")
 
 cat("Br. stršećih vrijednosti:", length(boxplot.stats(podatci$bmi, coef = 1.5)$out))
 ```
@@ -175,7 +178,7 @@ boxplot(podatci$bmi, main="Brkata kutija bmi-a", range=1.5, ylab="indesk tjelses
 cat("Br. stršećih vrijednosti:", length(boxplot.stats(podatci$bmi, coef = 1.5)$out))
 ```
 
-Nakon uklanjanja nerealnih vrijednosti, vidljiv je manji utjecaj stršećih vrijednosti na artimetičku sredinu *bmi* podataka. Kako ne bi došlo do daljnjeg gubitka podataka, s nedostajaćim će se podatcima pristupati tako da im se pridruži vrijednost medijana. Za ovaj je postupak odabran medijan umjesto srednje vrijednosti upravo zbog nedostatka utjecaja gornjih stršećih vrijendosti na njega.
+Nakon uklanjanja nerealnih vrijednosti, vidljiv je manji utjecaj stršećih vrijednosti na aritmetički sredinu *bmi* podataka. Kako ne bi došlo do daljnjeg gubitka podataka, s nedostajaćim će se podatcima pristupati tako da im se pridruži vrijednost medijana. Za ovaj je postupak odabran medijan umjesto srednje vrijednosti upravo zbog nedostatka utjecaja gornjih stršećih vrijednosti na njega.
 
 ```{r}
 podatci$bmi[is.na(podatci$bmi)] <- median(podatci$bmi, na.rm = TRUE)
